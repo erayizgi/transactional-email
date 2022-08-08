@@ -26,8 +26,10 @@ services:
     volumes:
       - ./:/opt/application
       - /opt/application/vendor
-    ports:
-      - 8020:8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.transactional.rule=Host(`localhost`)"
+      - "traefik.http.routers.transactional.entrypoints=web"
   rabbitmq:
     image: rabbitmq:management
     volumes:
@@ -35,3 +37,16 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+  traefik:
+    image: "traefik:v2.6"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "8020:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"

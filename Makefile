@@ -34,3 +34,7 @@ restart: ## Restart the containers
 cli: ## Gives the bash of given service
 	docker compose exec $(filter-out $@,$(MAKECMDGOALS)) bash
 .PHONY: cli
+
+scale: ## Scales up/down the app service to given number of instances
+	docker compose up app --scale app=$(filter-out $@,$(MAKECMDGOALS)) -d
+.PHONY: scale-up
