@@ -1,0 +1,37 @@
+version: '3.4'
+
+volumes:
+  mysql_data:
+
+services:
+  mysql:
+    image: library/mysql:8.0.21
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=transactional_mail
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - 8021:3306
+  app:
+    build:
+      dockerfile: Dockerfile
+      target: dependencies
+      context: ./
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    env_file:
+      - ./.env.local
+    volumes:
+      - ./:/opt/application
+      - /opt/application/vendor
+    ports:
+      - 8020:8080
+  rabbitmq:
+    image: rabbitmq:management
+    volumes:
+      - ./:/opt/application
+    ports:
+      - 5672:5672
+      - 15672:15672
