@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Class Content
+ * @implements Model
  * @property string $subject
  * @property string $content
  * @property string $content_type
@@ -17,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Content extends Model
 {
-    use HasTimestamps;
+    use HasTimestamps, HasFactory;
 
     const CONTENT_TYPES = [
         self::CONTENT_TYPE_TEXT,

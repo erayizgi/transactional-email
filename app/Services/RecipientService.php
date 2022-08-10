@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class RecipientService
 {
-    public array $validationRules = [
+    public const VALIDATION_RULES = [
         'email' => ['required', 'email', 'unique:recipients', 'max:255'],
         'first_name' => ['required', 'max:255'],
         'last_name' => ['required', 'max:255']
@@ -38,7 +38,7 @@ class RecipientService
      */
     protected function validate(array $data): array
     {
-        $validator = Validator::make($data, $this->validationRules);
+        $validator = Validator::make($data, self::VALIDATION_RULES);
         $validator->validate();
         return $validator->validated();
     }
