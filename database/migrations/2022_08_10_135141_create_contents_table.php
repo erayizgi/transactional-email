@@ -19,7 +19,6 @@ return new class extends Migration
             $table->longText('content');
             $table->string('content_type');
             $table->foreignId('recipient_id')->constrained('recipients');
-            $table->string('provider');
             $table->timestampsTz();
         });
     }

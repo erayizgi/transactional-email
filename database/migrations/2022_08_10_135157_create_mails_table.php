@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('recipient_id')->constrained('recipients');
             $table->string('subject');
             $table->foreignId('content_id')->constrained('contents');
+            $table->string('provider');
             $table->dateTimeTz('sent_at')->nullable();
             $table->timestampsTz();
         });
