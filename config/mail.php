@@ -32,6 +32,22 @@ return [
     |            "postmark", "log", "array", "failover"
     |
     */
+    'providers' => [
+        'mailjet' => \App\Services\Mail\MailjetDeliveryAdapter::class,
+        'sendgrid' => \App\Services\Mail\SendgridDeliveryAdapter::class,
+    ],
+
+    'credentials' => [
+        'sendgrid'=> [
+            'api_key' => env("SENDGRID_API_KEY")
+        ],
+        'mailjet' => [
+            'api_key' => env("MAILJET_API_KEY"),
+            'api_secret' => env("MAILJET_API_SECRET")
+        ]
+    ],
+    'max_attempts' => 10,
+    'delay_attempt_for_seconds' => 30,
 
     'mailers' => [
         'smtp' => [
@@ -92,7 +108,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'eray@erayizgi.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'erayizgi@gmail.com'),
         'name' => env('MAIL_FROM_NAME', 'Eray Izgi'),
     ],
 
