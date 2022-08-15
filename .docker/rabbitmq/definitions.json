@@ -1,0 +1,63 @@
+{
+  "rabbit_version": "3.10.7",
+  "rabbitmq_version": "3.10.7",
+  "product_name": "RabbitMQ",
+  "product_version": "3.10.7",
+  "users": [
+    {
+      "name": "guest",
+      "password_hash": "dYmVaMcP3/LiTSqSIR0UPCRO/S5BM26MPZHKGwKkNv9PQ2hZ",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "guest",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [
+    {
+      "name": "internal_cluster_id",
+      "value": "rabbitmq-cluster-id-gcYMvdH5r355oyWoVd1UqA"
+    }
+  ],
+  "policies": [],
+  "queues": [
+    {
+      "name": "default",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "default.delay.30000",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": "default",
+        "x-expires": 60000,
+        "x-message-ttl": 30000
+      }
+    }
+  ],
+  "exchanges": [],
+  "bindings": []
+}

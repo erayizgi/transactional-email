@@ -30,10 +30,24 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.transactional.rule=Host(`localhost`)"
       - "traefik.http.routers.transactional.entrypoints=web"
-  rabbitmq:
-    image: rabbitmq:management
+  queue-worker:
+    build:
+      dockerfile: Worker.Dockerfile
+      target: dependencies
+      context: ./
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    env_file:
+      - ./.env.local
+    depends_on:
+      - rabbitmq
     volumes:
       - ./:/opt/application
+  rabbitmq:
+    build:
+      dockerfile: Dockerfile
+      context: ./.docker/rabbitmq
     ports:
       - 5672:5672
       - 15672:15672
