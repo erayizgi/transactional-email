@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property integer $id
  * @property integer $recipient_id
  * @property string $subject
+ * @property \Ramsey\Uuid\UuidInterface $delivery_group_hash
  * @property integer $content_id
  * @property Recipient $recipient
  * @property Content $content
  * @property string $sent_at
+ * @property null|string $provider
  * @method static findOrFail(int $id)
  */
 class Mail extends Model
@@ -45,7 +47,7 @@ class Mail extends Model
      */
     public function recipient(): HasOne
     {
-        return $this->hasOne(Recipient::class);
+        return $this->hasOne(Recipient::class, 'id', 'recipient_id');
     }
 
     /**
@@ -54,6 +56,6 @@ class Mail extends Model
      */
     public function content(): HasOne
     {
-        return $this->hasOne(Content::class);
+        return $this->hasOne(Content::class, 'id', 'content_id');
     }
 }

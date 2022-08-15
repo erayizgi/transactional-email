@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $first_name
  * @property string $last_name
  * @method static findOrFail(int $id)
+ * @method static firstOrCreate(array $array, array $toArray): Recipient
  */
 class Recipient extends Model
 {

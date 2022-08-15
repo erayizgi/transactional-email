@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * Class Content
  * @implements Model
- * @property string $subject
+ * @property integer $id
  * @property string $content
  * @property string $content_type
  * @property integer $recipient_id
