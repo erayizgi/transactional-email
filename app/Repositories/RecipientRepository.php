@@ -13,4 +13,16 @@ class RecipientRepository extends AbstractRepository implements RepositoryInterf
     {
         $this->model = Recipient::class;
     }
+
+    /**
+     * @param \App\Models\Recipient $recipient
+     * @return \App\Models\Recipient
+     */
+    public function firstOrCreate(Recipient $recipient): Recipient
+    {
+        return Recipient::firstOrCreate(
+            ['email' => $recipient->email],
+            $recipient->toArray()
+        );
+    }
 }
