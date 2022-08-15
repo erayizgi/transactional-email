@@ -15,10 +15,11 @@ return new class extends Migration
     {
         Schema::create('mails', function (Blueprint $table) {
             $table->id();
+            $table->uuid('delivery_group_hash');
             $table->foreignId('recipient_id')->constrained('recipients');
             $table->string('subject');
             $table->foreignId('content_id')->constrained('contents');
-            $table->string('provider');
+            $table->string('provider')->nullable();
             $table->dateTimeTz('sent_at')->nullable();
             $table->timestampsTz();
         });
