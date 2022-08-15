@@ -6,13 +6,13 @@ use App\Models\Content;
 use App\Models\Recipient;
 use App\Repositories\ContentRepository;
 use App\Services\ContentService;
-use Illuminate\Support\Facades\Validator;
-use Mockery;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
 class ContentServiceTest extends TestCase
 {
+    use RefreshDatabase;
     public MockInterface|ContentRepository $contentRepository;
     protected function setUp(): void
     {
@@ -40,6 +40,16 @@ class ContentServiceTest extends TestCase
         $service->create($model->toArray());
         // Delete the recipient we created
         $recipient->delete();
+    }
+
+    public function test_replace_variables()
+    {
+        $service = new ContentService($this->contentRepository);
+        $content = "Dear {{first_name}} {{last_name}}, this is your account summary.";
+        $variables = ['first_name' => fake()->firstName, 'last_name' => fake()->lastName];
+        $expected = "Dear {$variables['first_name']} {$variables['last_name']}, this is your account summary.";
+        $result = $service->replaceVariables($content, $variables);
+        $this->assertSame($expected, $result);
     }
 
 }

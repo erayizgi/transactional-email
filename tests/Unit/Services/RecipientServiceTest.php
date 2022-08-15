@@ -5,11 +5,13 @@ namespace Tests\Unit\Services;
 use App\Models\Recipient;
 use App\Repositories\RecipientRepository;
 use App\Services\RecipientService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
 use Tests\TestCase;
 
 class RecipientServiceTest extends TestCase
 {
+    use RefreshDatabase;
     public MockInterface|RecipientService $recipientService;
     public MockInterface|RecipientRepository $recipientRepository;
 
@@ -19,7 +21,7 @@ class RecipientServiceTest extends TestCase
         $this->recipientRepository = $this->mock(RecipientRepository::class);
     }
 
-    public function test_create()
+    public function test_getOrCreate()
     {
         $model = Recipient::factory()->make();
         $validData = $model->toArray();
@@ -28,13 +30,13 @@ class RecipientServiceTest extends TestCase
             ->withArgs([$validData])
             ->andReturn($model);
 
-        $this->recipientRepository->shouldReceive('save')
+        $this->recipientRepository->shouldReceive('firstOrCreate')
             ->once()
             ->withArgs([$model])
             ->andReturn($model);
         $this->recipientService = new RecipientService($this->recipientRepository);
 
-        $result = $this->recipientService->create($validData);
+        $result = $this->recipientService->getOrCreate($validData);
         $this->assertSame($model, $result);
     }
 }
