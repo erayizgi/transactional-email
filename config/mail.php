@@ -33,8 +33,8 @@ return [
     |
     */
     'providers' => [
-        'mailjet' => \App\Services\Mail\MailjetDeliveryAdapter::class,
         'sendgrid' => \App\Services\Mail\SendgridDeliveryAdapter::class,
+        'mailjet' => \App\Services\Mail\MailjetDeliveryAdapter::class,
     ],
 
     'credentials' => [

@@ -15,10 +15,6 @@ down:	## Stop the docker containers for local development
 	docker compose down
 .PHONY: down
 
-tail:	## Tail the log files of the containers
-	docker compose logs -f -t --tail=20
-.PHONY: tail
-
 up:	## Start the docker containers for local development
 	docker compose up -d
 .PHONY: up
@@ -35,6 +31,26 @@ cli: ## Gives the bash of given service
 	docker compose exec $(filter-out $@,$(MAKECMDGOALS)) bash
 .PHONY: cli
 
-scale: ## Scales up/down the app service to given number of instances
+scale-app: ## Scales up/down the app service to given number of instances
 	docker compose up app --scale app=$(filter-out $@,$(MAKECMDGOALS)) -d
-.PHONY: scale-up
+.PHONY: scale-app
+
+scale-worker: ## Scales up/down the app service to given number of instances
+	docker compose up app --scale queue-worker=$(filter-out $@,$(MAKECMDGOALS)) -d
+.PHONY: scale-worker
+
+migrate-fresh: ## Do a fresh migration
+	docker compose exec app bash -c "php artisan migrate:fresh"
+.PHONY: migrate-fresh
+
+tail: ## Follow logs of given service
+	docker compose logs $(filter-out $@,$(MAKECMDGOALS)) -f
+.PHONY: tail
+
+create-mail: ## Gives CLI tool to create a mail
+	docker compose exec app bash -c "php artisan create:mail"
+.PHONY: create-mail
+
+test: ## Runs test
+	docker compose exec app bash -c "php artisan test --coverage"
+.PHONY: test

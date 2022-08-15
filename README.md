@@ -1,64 +1,139 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Transactional Email Microservice
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Tools Used
 
-## About Laravel
+* Docker
+* PHP 8.1
+* Laravel 9.x
+* Traefik
+* RabbitMQ
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Description
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* This service aims to send emails via API call or CLI with a fallback mechanism.
+* Responsibilities of the application are shared amongst the layers like explained below:
+  * Controller layer -> Request validation and service initialization
+  * Service Layer -> Contains business logic, can only access to its own repository, can interact with other entities via calling other services
+  * Repository Layer -> Contains interactions with an entity
+  * Model Layer -> Represents database entities
+* Service supports sendgrid and mailjet as mail delivery providers
+* The service will try to send the email with every provider defined in `app/config/mail.php` until one of them successfully sends the email.
+* Every provider must implement `App\Services\Mail\MailDeliveryAdapterInterface`.
+* When a new provider is going to be introduced, the adapter must be prepared and it must be listed in the `providers` configuration from `app/config/mail.php`
+* The service uses jobs to send an email asynchronously
+* In order to provide horizontal scalability, the queue worker is being separated from the app service (see setup for scaling instances)
+* If none of the providers are available, it will re-queue the email sending job with 30 seconds of delay and it will attempt to send the email 10 times. 
+* At every attempt, job will be delayed for 30 seconds and will be retried after 30 seconds.
+* The values for delay duration and attempts are configurable and can be found in `app/config/mail.php`
+* The service allows users to send one template to multiple recipients. (see examples for details)
+* It will create a separate job and a separate mail record for each recipient and will process these jobs one by one
+* The mails sent are being tagged with a delivery group hash so the service can keep track of the batch sending
+* Once the email gets sent, the `sent_at` column and `provider` column gets filled from mails table.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Setup 
+Set up your sendgrid api key, mailjet api key and mailjet secret in `.env.local` file
 
-## Learning Laravel
+    SENDGRID_API_KEY=<SENDGRID_API_KEY>
+    MAILJET_API_KEY=<MAILJET_API_KEY>
+    MAILJET_API_SECRET=<MAILJET_API_SECRET>
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Run
+    
+    make build
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Run the command below to set up fresh environment
 
-## Laravel Sponsors
+    make fresh-up
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Once all the containers are up and ready _(usually takes about 30 sec)_ run below command to set up database structure
 
-### Premium Partners
+    make migrate-fresh
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+The API will be available at
 
-## Contributing
+    http://localhost:8020
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+To reach to the CLI to create an email by running command below
 
-## Code of Conduct
+    make create-mail
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+To run the tests with coverage report
 
-## Security Vulnerabilities
+    make test
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+To scale up/down app instance
 
-## License
+    make scale-app <number of instances desired>
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+To scale up/down queue worker instance
+
+    make scale-worker <number of instances desired>
+
+## API Example
+
+* The endpoint accepts multiple recipients
+* The endpoint accepts content type of `text/html` or `text/plain`
+* The endpoint allows you to send an email with replaceable content by adding {{first_name}} and {{last_name}}
+
+
+    POST http://localhost:8020/api/v1/mail
+    Content-Type: application/json
+    Accept: application/json
+
+    {
+      "recipients": [
+          {
+              "email": "your@email.com",
+              "first_name": "Firstname",
+              "last_name": "Lastname"
+          }
+      ],
+      "content": {
+          "content": "Hi {{first_name}} {{last_name}}, This is an example content",
+          "content_type": "text/plain"
+      },
+      "mail": {
+          "subject": "Greetings."
+      }
+    }
+
+## Services
+
+### Application
+
+Available at :`http://localhost:8020`
+
+Available Endpoints
+
+``
+POST http://localhost:8020/api/v1/mail
+``
+
+
+### Traefik
+
+Dashboard available at: `http://localhost:8080/`
+
+Is being used as reverse proxy for scalability of app service
+
+### MySQL
+
+Accessible at `localhost:8021`
+
+Username: `root`
+
+Password: `root2root`
+
+Database: `transactional_mail`
+
+### RabbitMQ
+
+Accessible at `localhost:15672`
+
+Username: `guest`
+
+Password: `guest`
+
+### Queue Worker
+
+Not accessible logs can be read by running `make tail queue-worker`
