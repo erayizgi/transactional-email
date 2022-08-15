@@ -4,12 +4,11 @@ namespace App\Services;
 
 use App\Models\Recipient;
 use App\Repositories\RecipientRepository;
-use Illuminate\Support\Facades\Validator;
 
-class RecipientService
+class RecipientService extends AbstractService
 {
     public const VALIDATION_RULES = [
-        'email' => ['required', 'email', 'unique:recipients', 'max:255'],
+        'email' => ['required', 'email:rfc,strict', 'max:255'],
         'first_name' => ['required', 'max:255'],
         'last_name' => ['required', 'max:255']
     ];
@@ -19,28 +18,27 @@ class RecipientService
     }
 
     /**
-     * @param array $data
+     * @param array{
+     *         email: string,
+     *         fist_name: string,
+     *         last_name: string
+     *     } $data
      * @return \App\Models\Recipient
      * @throws \Illuminate\Validation\ValidationException
      * @throws \Throwable
      */
-    public function create(array $data): Recipient
+    public function getOrCreate(array $data): Recipient
     {
         $validated = $this->validate($data);
         $recipient = $this->recipientRepository->hydrate($validated);
-        return $this->recipientRepository->save($recipient);
+        return $this->recipientRepository->firstOrCreate($recipient);
     }
 
     /**
-     * @param array $data
-     * @return array
-     * @throws \Illuminate\Validation\ValidationException
+     * @return \string[][]
      */
-    protected function validate(array $data): array
+    public function getValidationRules(): array
     {
-        $validator = Validator::make($data, self::VALIDATION_RULES);
-        $validator->validate();
-        return $validator->validated();
+        return self::VALIDATION_RULES;
     }
-
 }

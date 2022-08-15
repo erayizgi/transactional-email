@@ -7,11 +7,9 @@ use App\Repositories\ContentRepository;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class ContentService
+class ContentService extends AbstractService
 {
-
     public const VALIDATION_RULES = [
-        'subject' => ['required', 'max:255'],
         'content' => ['required'],
         'recipient_id' => ['required', 'exists:recipients,id']
     ];
@@ -48,5 +46,24 @@ class ContentService
         return $this->contentRepository->save($content);
     }
 
+    /**
+     * @param string $content
+     * @param array $values
+     * @return string
+     */
+    public function replaceVariables(string $content, array $values): string
+    {
+        foreach ($values as $key => $value) {
+            $content = str_replace("{{{$key}}}", $value, $content);
+        }
+        return $content;
+    }
 
+    /**
+     * @return \string[][]
+     */
+    public function getValidationRules(): array
+    {
+        return self::VALIDATION_RULES;
+    }
 }
